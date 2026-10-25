@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ternary PTQ Fine-Grained — Interactive Learning Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #060911;
+            color: #f8fafc;
+            overflow-x: hidden;
+            line-height: 1.65;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
+        }
+        .glass-card-hover {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(56, 189, 248, 0.45);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px -10px rgba(14, 165, 233, 0.18);
+        }
+        .glow-bg {
+            background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.14), transparent 65%);
+        }
+        .bit-box {
+            transition: all 0.2s ease;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Sticky Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+            <a href="#" class="flex items-center gap-3.5 shrink-0 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
+                    <i class="ph-bold ph-cpu text-xl"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-base tracking-tight text-white leading-snug whitespace-nowrap">
+                        Ternary <span class="text-sky-400">Quantization</span>
+                    </span>
+                    <span class="text-xs text-slate-400 font-mono leading-snug whitespace-nowrap">
+                        Interactive Learning Hub
+                    </span>
+                </div>
+            </a>
+            
+            <nav class="hidden xl:flex items-center gap-1.5 text-xs font-medium text-slate-300 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80">
+                <a href="#masalah" class="px-3.5 py-2 rounded-xl hover:bg-slate-800 hover:text-sky-400 transition">1. Konsep & Bit</a>
+                <a href="#arsitektur" class="px-3.5 py-2 rounded-xl hover:bg-slate-800 hover:text-sky-400 transition">2. Model & Dataset</a>
+                <a href="#simulator-terner" class="px-3.5 py-2 rounded-xl hover:bg-slate-800 hover:text-sky-400 transition">3. Simulator Terner</a>
+                <a href="#fine-grained" class="px-3.5 py-2 rounded-xl hover:bg-slate-800 hover:text-sky-400 transition">4. Coarse vs Fine</a>
+                <a href="#prosedur" class="px-3.5 py-2 rounded-xl hover:bg-slate-800 hover:text-sky-400 transition">5. Prosedur & Uji</a>
+                <a href="#sota" class="px-3.5 py-2 rounded-xl hover:bg-slate-800 hover:text-sky-400 transition">6. State of the Art</a>
+            </nav>
+
+            <button id="quizBtn" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold transition flex items-center gap-2 shrink-0 shadow-lg shadow-sky-500/20">
+                <i class="ph-bold ph-lightning text-sm"></i>
+                <span>Uji Pemahaman</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 glow-bg border-b border-slate-800/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+                <div class="lg:col-span-7 space-y-8">
+                    <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-300 text-xs font-semibold tracking-wide">
+                        <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                        EDGE AI & DEEP LEARNING COMPRESSION • INTERACTIVE HUB
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.18]">
+                            Ternary Post-Training Quantization
+                            <span class="block mt-1 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400">
+                                Pendekatan Fine-Grained
+                            </span>
+                        </h1>
+                        
+                        <p class="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl font-normal">
+                            Memangkas ukuran model Deep Learning dari <span class="font-mono text-amber-300 font-semibold">32-bit</span> menjadi hanya <span class="font-mono text-emerald-400 font-semibold">~1.58-bit</span> (bobot terner <code class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-sm">{-1, 0, +1}</code>) tanpa melatih ulang model dan tetap menjaga akurasi klasifikasi citra.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 pt-1">
+                        <a href="#simulator-terner" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-sky-500/20 hover:opacity-95 transition flex items-center gap-2.5">
+                            <i class="ph-bold ph-sliders-horizontal text-base"></i> Coba Simulator Bobot Terner
+                        </a>
+                        <a href="#fine-grained" class="px-6 py-3.5 rounded-xl glass-card text-slate-200 hover:text-white hover:border-slate-600 font-semibold text-sm transition flex items-center gap-2.5">
+                            <i class="ph-bold ph-grid-four text-base"></i> Eksplorasi Fine-Grained
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Hero Interactive Neural Preview -->
+                <div class="lg:col-span-5">
+                    <div class="glass-card rounded-3xl p-6 sm:p-7 border border-slate-700/70 space-y-5">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <span class="text-xs font-mono uppercase tracking-wider text-sky-400 font-semibold flex items-center gap-2">
+                                <i class="ph-fill ph-cpu text-base"></i> Ilustrasi Jaringan Saraf
+                            </span>
+                            <div class="flex gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                                <button onclick="setHeroMode('fp32')" id="heroBtnFp32" class="px-3 py-1.5 rounded-lg text-xs font-mono transition text-slate-400 hover:text-white">FP32 (Asli)</button>
+                                <button onclick="setHeroMode('ternary')" id="heroBtnTernary" class="px-3 py-1.5 rounded-lg text-xs font-mono transition bg-emerald-500 text-slate-950 font-bold">Ternary (1.58-bit)</button>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Neural Network SVG -->
+                        <div class="bg-slate-950/90 rounded-2xl p-5 border border-slate-800/90">
+                            <svg id="heroNeuralSvg" viewBox="0 0 360 220" class="w-full h-auto">
+                                <!-- Connections -->
+                                <line id="conn1" x1="65" y1="110" x2="275" y2="45" stroke="#10b981" stroke-width="3.5" stroke-dasharray="4 2" />
+                                <line id="conn2" x1="65" y1="110" x2="275" y2="110" stroke="#f43f5e" stroke-width="3.5" />
+                                <line id="conn3" x1="65" y1="110" x2="275" y2="175" stroke="#475569" stroke-width="1.5" stroke-dasharray="3 3" />
+
+                                <!-- Weight Badges on Lines -->
+                                <g transform="translate(155, 55)">
+                                    <rect id="badge1Bg" x="-42" y="-14" width="84" height="26" rx="6" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+                                    <text id="badge1Txt" x="0" y="4" text-anchor="middle" fill="#6ee7b7" font-family="JetBrains Mono" font-size="12" font-weight="bold">+1 (α)</text>
+                                </g>
+                                <g transform="translate(170, 110)">
+                                    <rect id="badge2Bg" x="-42" y="-14" width="84" height="26" rx="6" fill="#4c0519" stroke="#f43f5e" stroke-width="1.5"/>
+                                    <text id="badge2Txt" x="0" y="4" text-anchor="middle" fill="#fda4af" font-family="JetBrains Mono" font-size="12" font-weight="bold">-1 (-α)</text>
+                                </g>
+                                <g transform="translate(155, 162)">
+                                    <rect id="badge3Bg" x="-42" y="-14" width="84" height="26" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+                                    <text id="badge3Txt" x="0" y="4" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono" font-size="12" font-weight="bold">0 (Pruned)</text>
+                                </g>
+
+                                <!-- Input Node -->
+                                <circle cx="65" cy="110" r="24" fill="#0284c7" stroke="#38bdf8" stroke-width="3"/>
+                                <text x="65" y="114" text-anchor="middle" fill="#fff" font-family="Inter" font-size="11" font-weight="bold">Input X</text>
+
+                                <!-- Output Nodes -->
+                                <circle cx="285" cy="45" r="18" fill="#0f172a" stroke="#10b981" stroke-width="2.5"/>
+                                <text x="285" y="49" text-anchor="middle" fill="#a7f3d0" font-family="JetBrains Mono" font-size="11">Y₁</text>
+
+                                <circle cx="285" cy="110" r="18" fill="#0f172a" stroke="#f43f5e" stroke-width="2.5"/>
+                                <text x="285" y="114" text-anchor="middle" fill="#fecdd3" font-family="JetBrains Mono" font-size="11">Y₂</text>
+
+                                <circle cx="285" cy="175" r="18" fill="#0f172a" stroke="#64748b" stroke-width="2"/>
+                                <text x="285" y="179" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono" font-size="11">Y₃</text>
+                            </svg>
+                        </div>
+
+                        <div id="heroCaption" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-xs sm:text-sm text-emerald-200 leading-relaxed">
+                            <strong>Mode Terner Aktif:</strong> Bobot desimal <code class="font-mono">[0.852, -0.32, 0.15]</code> dipetakan menjadi <code class="font-mono">[+1, -1, 0]</code> dengan faktor skala <code class="font-mono">α = 0.586</code>. Operasi perkalian floating-point yang berat berubah menjadi penjumlahan/pengurangan sederhana!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 1: DASAR KUANTISASI & AKAR MASALAH FP32 -->
+    <section id="masalah" class="py-20 lg:py-28 border-b border-slate-800/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+            <div class="max-w-3xl space-y-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">
+                    Bagian 01 • Konsep Dasar
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-bold text-white tracking-tight">Mengapa Harus Kuantisasi ke Presisi Terner?</h2>
+                <p class="text-slate-300 text-base leading-relaxed">
+                    <strong>Kuantisasi Model (Model Quantization)</strong> adalah proses mengonversi bobot <em>full-precision</em> (FP32) menjadi bentuk <em>low-precision</em> untuk memperkecil konsumsi memori dan mempercepat komputasi pada perangkat <em>Edge / IoT</em> bersumber daya rendah.
+                </p>
+            </div>
+
+            <!-- Interactive Bit-Width Explorer -->
+            <div class="glass-card rounded-3xl p-6 sm:p-10 border border-slate-800 space-y-8">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+                    <div class="space-y-1.5">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2.5">
+                            <i class="ph-duotone ph-memory text-sky-400 text-2xl"></i>
+                            Eksplorator Evolusi Presisi Bit (FP32 ➔ Ternary)
+                        </h3>
+                        <p class="text-sm text-slate-400">Pilih format presisi di sebelah kanan untuk melihat perbandingan kapasitas bit di memori dan rasio kompresinya.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5" id="precisionTabs">
+                        <button onclick="selectPrecision('fp32')" data-prec="fp32" class="prec-btn px-4 py-2.5 rounded-xl text-xs font-mono font-bold border transition">FP32 (32-bit)</button>
+                        <button onclick="selectPrecision('int8')" data-prec="int8" class="prec-btn px-4 py-2.5 rounded-xl text-xs font-mono font-bold border transition">INT8 (8-bit)</button>
+                        <button onclick="selectPrecision('int4')" data-prec="int4" class="prec-btn px-4 py-2.5 rounded-xl text-xs font-mono font-bold border transition">INT4 (4-bit)</button>
+                        <button onclick="selectPrecision('ternary')" data-prec="ternary" class="prec-btn px-4 py-2.5 rounded-xl text-xs font-mono font-bold border transition">Ternary (~1.58-bit)</button>
+                    </div>
+                </div>
+
+                <!-- Bit Visualization Grid -->
+                <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                            <span class="text-slate-400">KAPASITAS MEMORI PER 1 BOBOT (32 SLOT BIT)</span>
+                            <span id="activeBitCountLabel" class="text-sky-400 font-bold bg-sky-500/10 px-3 py-1 rounded-lg border border-sky-500/20">32 / 32 Bit Terpakai</span>
+                        </div>
+                        
+                        <!-- 32-bit Visual Slots (8 columns x 4 rows) -->
+                        <div id="bitGridContainer" class="grid grid-cols-8 gap-2.5 p-5 rounded-2xl bg-slate-950 border border-slate-800/90">
+                            <!-- Generated via JS -->
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400 pt-1">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3.5 h-3.5 rounded bg-sky-500 inline-block"></span>
+                                <span>Bit Aktif Menyimpan Bobot</span>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3.5 h-3.5 rounded bg-slate-900 border border-slate-700 inline-block"></span>
+                                <span>Memori Dihemat (Dibebaskan)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Precision Details Card -->
+                    <div class="lg:col-span-5">
+                        <div id="precisionDetailCard" class="p-6 sm:p-7 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-5">
+                            <!-- Filled dynamically by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PTQ vs QAT Comparison -->
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="glass-card rounded-3xl p-7 sm:p-8 border-t-4 border-t-sky-400 flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-lg bg-sky-500/15 text-sky-300 font-mono text-xs font-bold">FOKUS UTAMA</span>
+                            <i class="ph-duotone ph-lightning text-3xl text-sky-400"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white">Post-Training Quantization (PTQ)</h4>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Kuantisasi diterapkan <strong>langsung setelah model selesai dilatih</strong> (pasca-pelatihan). Sangat praktis dan cepat karena <strong>tanpa perlu pelatihan ulang (fine-tuning)</strong> yang memakan waktu lama.
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs sm:text-sm text-amber-200 flex items-start gap-3">
+                        <i class="ph-fill ph-warning-circle text-lg shrink-0 mt-0.5 text-amber-400"></i>
+                        <span><strong>Tantangan Utama:</strong> Rentan mengalami penurunan akurasi pada presisi ekstrem (1.58-bit) jika hanya memakai satu skala global (Coarse-Grained).</span>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-7 sm:p-8 border-t-4 border-t-slate-600 flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-xs font-bold">METODE PEMBANDING</span>
+                            <i class="ph-duotone ph-arrows-clockwise text-3xl text-slate-400"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white">Quantization Aware Training (QAT)</h4>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Simulasi kuantisasi diterapkan <strong>bersamaan dengan proses training</strong> dari awal atau melalui <em>retraining</em> penuh agar bobot beradaptasi terhadap error kuantisasi.
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs sm:text-sm text-slate-300 flex items-start gap-3">
+                        <i class="ph-fill ph-clock-countdown text-lg shrink-0 mt-0.5 text-slate-400"></i>
+                        <span><strong>Kelemahan:</strong> Membutuhkan biaya komputasi GPU tinggi, akses penuh ke dataset latih, dan waktu pelatihan ulang yang sangat lama.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: DUA ARSITEKTUR + DUA DATASET -->
+    <section id="arsitektur" class="py-20 lg:py-28 border-b border-slate-800/70 bg-slate-950/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div class="space-y-3 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">
+                        Bagian 02 • Desain Uji
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-bold text-white tracking-tight">2 Arsitektur CNN × 2 Dataset Benchmark</h2>
+                    <p class="text-slate-300 text-base leading-relaxed">
+                        Menguji ketahanan kuantisasi terner mulai dari fondasi CNN klasik hingga arsitektur jaringan dalam dengan variasi kompleksitas tekstur visual.
+                    </p>
+                </div>
+                <div class="text-xs font-mono text-slate-300 bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-800 shrink-0">
+                    Total Kombinasi Uji: <span class="text-sky-400 font-bold">4 Skenario Eksperimen</span>
+                </div>
+            </div>
+
+            <!-- Architecture & Dataset Matrix -->
+            <div class="grid lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Left Column: Selectors -->
+                <div class="lg:col-span-6 flex flex-col justify-between space-y-8">
+                    <div class="space-y-3.5">
+                        <label class="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold block">
+                            Langkah 1 — Pilih Arsitektur Model CNN:
+                        </label>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <button onclick="updateArchDataset('lenet', null)" id="cardArchLenet" class="text-left p-6 rounded-2xl glass-card border-2 border-sky-500 transition space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 font-mono text-xs font-semibold">Arsitektur Pelopor</span>
+                                    <i class="ph-fill ph-check-circle text-sky-400 text-xl" id="checkLenet"></i>
+                                </div>
+                                <div class="text-xl font-bold text-white">LeNet-5</div>
+                                <ul class="text-xs sm:text-sm text-slate-300 space-y-1.5">
+                                    <li>• Struktur <strong>5 lapisan dasar</strong></li>
+                                    <li>• Ukuran: <strong>~60 Ribu parameter</strong></li>
+                                    <li>• Menguji fondasi dasar CNN</li>
+                                </ul>
+                            </button>
+
+                            <button onclick="updateArchDataset('resnet', null)" id="cardArchResnet" class="text-left p-6 rounded-2xl glass-card border border-slate-800 hover:border-slate-700 transition space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 font-mono text-xs font-semibold">Arsitektur Modern</span>
+                                    <i class="ph-fill ph-check-circle text-slate-600 text-xl" id="checkResnet"></i>
+                                </div>
+                                <div class="text-xl font-bold text-white">ResNet-18</div>
+                                <ul class="text-xs sm:text-sm text-slate-300 space-y-1.5">
+                                    <li>• Jaringan dalam (<strong>18 lapisan</strong>)</li>
+                                    <li>• Fitur <strong>Skip Connection</strong></li>
+                                    <li>• Ukuran: <strong>~11 Juta parameter</strong></li>
+                                </ul>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3.5">
+                        <label class="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold block">
+                            Langkah 2 — Pilih Dataset Citra (70.000 Citra • 10.000 Data Uji):
+                        </label>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <button onclick="updateArchDataset(null, 'mnist')" id="cardDataMnist" class="text-left p-6 rounded-2xl glass-card border-2 border-emerald-500 transition space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-mono text-xs font-semibold">Visual Sederhana</span>
+                                    <i class="ph-fill ph-check-circle text-emerald-400 text-xl" id="checkMnist"></i>
+                                </div>
+                                <div class="text-xl font-bold text-white">MNIST</div>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                    70.000 citra digit angka tulisan tangan (0–9). Struktur kontras jelas sebagai <em>baseline benchmark</em>.
+                                </p>
+                            </button>
+
+                            <button onclick="updateArchDataset(null, 'fmnist')" id="cardDataFmnist" class="text-left p-6 rounded-2xl glass-card border border-slate-800 hover:border-slate-700 transition space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-300 font-mono text-xs font-semibold">Visual Kompleks</span>
+                                    <i class="ph-fill ph-check-circle text-slate-600 text-xl" id="checkFmnist"></i>
+                                </div>
+                                <div class="text-xl font-bold text-white">Fashion-MNIST</div>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                    Citra produk fashion (baju, tas, sepatu). Variasi tekstur tinggi untuk menguji keandalan pada data sulit.
+                                </p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Live Compression & Architecture Telemetry -->
+                <div class="lg:col-span-6">
+                    <div class="glass-card rounded-3xl p-7 sm:p-9 border border-slate-700/80 h-full flex flex-col justify-between space-y-7">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-5">
+                            <div class="space-y-1">
+                                <span class="text-xs font-mono text-sky-400 uppercase font-semibold">Simulasi Kompresi & Kompleksitas</span>
+                                <h3 id="simComboTitle" class="text-xl sm:text-2xl font-bold text-white">LeNet-5 pada Dataset MNIST</h3>
+                            </div>
+                            <span id="simComboBadge" class="px-3.5 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-semibold">Baseline Ringan</span>
+                        </div>
+
+                        <!-- Memory Footprint Bar Comparison -->
+                        <div class="space-y-5">
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs sm:text-sm font-mono">
+                                    <span class="text-slate-300">Ukuran Memori Bobot FP32 (32-bit)</span>
+                                    <span id="memFp32Val" class="text-amber-400 font-bold">~240 KB (60.000 param)</span>
+                                </div>
+                                <div class="w-full h-4 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                                    <div class="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full w-full"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs sm:text-sm font-mono">
+                                    <span class="text-slate-300">Ukuran Memori Ternary PTQ (~1.58-bit + Skala α)</span>
+                                    <span id="memTernaryVal" class="text-emerald-400 font-bold">~15 KB (~16x Lebih Kecil!)</span>
+                                </div>
+                                <div class="w-full h-4 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                                    <div id="memTernaryBar" class="h-full bg-gradient-to-r from-emerald-400 to-sky-400 rounded-full transition-all duration-500" style="width: 7%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Sample Grid Simulation -->
+                        <div class="grid sm:grid-cols-12 gap-5 bg-slate-950/80 p-5 rounded-2xl border border-slate-800/90 items-center">
+                            <div class="sm:col-span-4 flex flex-col items-center">
+                                <div class="text-[11px] font-mono text-slate-400 uppercase mb-2.5 text-center">Input (28×28 px)</div>
+                                <div id="datasetPixelPreview" class="grid grid-cols-7 gap-1 w-28 h-28 p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                                    <!-- 7x7 mini pixel art generated by JS -->
+                                </div>
+                            </div>
+                            <div class="sm:col-span-8 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                <div id="archInsightText">
+                                    <strong>Analisis Skenario:</strong> LeNet-5 hanya memiliki ~60 ribu parameter. Kuantisasi terner pada MNIST menguji apakah struktur 5 layer dasar mampu mempertahankan fitur bentuk angka tanpa mengalami degradasi.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-2 border-t border-slate-800/80">
+                            <span><i class="ph-bold ph-code text-sky-400 mr-1"></i> Evaluasi Runtime: <strong>C++ / CPU Inference</strong></span>
+                            <span class="font-mono text-slate-300">Populasi Uji: 10.000 Sampel</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: SIMULATOR MEKANISME PEMETAAN BOBOT TERNER -->
+    <section id="simulator-terner" class="py-20 lg:py-28 border-b border-slate-800/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="max-w-3xl space-y-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">
+                    Bagian 03 • Algoritma & Formula
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-bold text-white tracking-tight">Simulator Interaktif Pemetaan Bobot Terner</h2>
+                <p class="text-slate-300 text-base leading-relaxed">
+                    Jutaan nilai desimal bobot (FP32) disederhanakan menjadi tiga nilai diskrit <code class="text-sky-300 font-mono">{+1, 0, -1}</code>. Nilai <strong>Threshold (Δ)</strong> dihitung otomatis dari rumus <code class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono font-semibold">Δ = 0.7 × E(|W|)</code> (70% dari rata-rata nilai absolut bobot). Silakan ubah atau tambahkan nilai bobot di bawah ini!
+                </p>
+            </div>
+
+            <div class="glass-card rounded-3xl p-6 sm:p-10 border border-slate-700/80 space-y-10">
+                <!-- Interactive Weight Input & Auto-Threshold Calculation Box -->
+                <div class="grid lg:grid-cols-12 gap-8 items-stretch bg-slate-900/80 p-6 sm:p-7 rounded-2xl border border-slate-800">
+                    <!-- Left: User Custom Input Controls -->
+                    <div class="lg:col-span-7 flex flex-col justify-between space-y-5">
+                        <div class="space-y-3">
+                            <label for="customWeightsInput" class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-pencil-simple-line text-sky-400 text-lg"></i>
+                                Masukkan Daftar Bobot Asli FP32 (pisahkan dengan koma):
+                            </label>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <input id="customWeightsInput" type="text" value="0.852, -0.32, 0.15" 
+                                    placeholder="Contoh: 0.852, -0.32, 0.15" 
+                                    oninput="handleTextWeightInput()"
+                                    class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-400 focus:outline-none font-mono text-sm text-white tracking-wide transition">
+                                <button onclick="addNewWeightSlot()" title="Tambah 1 Bobot" class="px-4 py-3 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-300 hover:bg-sky-500 hover:text-slate-950 font-mono text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5">
+                                    <i class="ph-bold ph-plus"></i> Tambah Bobot
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <span class="text-xs font-mono text-slate-400 block">Atau gunakan preset cepat:</span>
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <button onclick="resetDefaultExample()" class="px-4 py-2.5 rounded-xl bg-sky-500 text-slate-950 hover:bg-sky-400 text-xs font-bold transition flex items-center gap-2 shadow-md shadow-sky-500/15">
+                                    <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset Default (3 Bobot)
+                                </button>
+                                <button onclick="loadPresetOutlier()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-2">
+                                    <i class="ph-bold ph-chart-scatter"></i> Preset 6 Bobot Variatif
+                                </button>
+                                <button onclick="randomizeWeights()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-2">
+                                    <i class="ph-bold ph-shuffle"></i> Acak Nilai Bobot
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Automatic Threshold (Delta) Live Derivation -->
+                    <div class="lg:col-span-5 p-6 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-col justify-between space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold flex items-center gap-1.5">
+                                <i class="ph-fill ph-function text-base"></i> Kalkulasi Threshold (Δ)
+                            </span>
+                            <span class="px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 font-mono text-xs font-semibold">Δ = 0.7 × E(|W|)</span>
+                        </div>
+
+                        <div id="thresholdStepsBox" class="text-xs font-mono text-slate-300 space-y-2 bg-slate-900/90 p-4 rounded-xl border border-slate-800 leading-relaxed">
+                            <!-- Filled dynamically by JS -->
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-xs sm:text-sm text-slate-300 font-medium">Batas Ambang (Threshold Δ):</span>
+                            <span id="thresholdValDisplay" class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 font-mono text-base font-extrabold text-amber-300">Δ = 0.309</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mathematical Rules Banner -->
+                <div class="grid sm:grid-cols-3 gap-5">
+                    <div class="p-5 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="text-xs font-mono text-emerald-400 uppercase font-semibold">Positif Kuat</div>
+                            <div class="font-mono text-sm text-white">Jika Bobot <span class="text-emerald-300 font-bold">&gt; +Δ</span></div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-mono font-bold text-lg flex items-center justify-center shrink-0">+1</div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-700 flex items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="text-xs font-mono text-slate-400 uppercase font-semibold">Rentang Lemah (Disaring)</div>
+                            <div class="font-mono text-sm text-white">Jika <span class="text-slate-300 font-bold">|Bobot| ≤ Δ</span></div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-mono font-bold text-lg flex items-center justify-center shrink-0">0</div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-rose-950/30 border border-rose-500/30 flex items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="text-xs font-mono text-rose-400 uppercase font-semibold">Negatif Kuat</div>
+                            <div class="font-mono text-sm text-white">Jika Bobot <span class="text-rose-300 font-bold">&lt; -Δ</span></div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-400 text-rose-300 font-mono font-bold text-lg flex items-center justify-center shrink-0">-1</div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Weight Transformation Cards -->
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="text-xs sm:text-sm font-mono text-slate-300">
+                            Transformasi Tiap Bobot <span class="text-slate-400">(edit angka langsung di dalam kartu):</span>
+                        </div>
+                        <span id="weightCountBadge" class="px-3 py-1 rounded-lg bg-sky-500/10 text-xs font-mono text-sky-400 font-semibold">Total: 3 Bobot</span>
+                    </div>
+                    <div id="ternaryWeightsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Scale Factor (Alpha) Live Calculation Box -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950/40 to-slate-900 border border-sky-500/30 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div class="space-y-2 max-w-3xl">
+                        <div class="text-xs font-mono text-sky-400 uppercase font-semibold flex items-center gap-2">
+                            <i class="ph-fill ph-calculator text-base"></i> Kalkulasi Konstanta Skala Riil (α - FP32)
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Skala (<code class="font-mono text-sky-300">α</code>) merepresentasikan rata-rata magnitudo absolut dari bobot asli yang <strong>lolos batas threshold</strong> (bobot yang dipetakan ke +1 atau -1).
+                        </p>
+                        <div id="alphaFormulaSteps" class="text-xs sm:text-sm font-mono text-amber-300 pt-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="shrink-0 w-full lg:w-auto bg-slate-950 px-6 py-4 rounded-2xl border border-sky-400/40 text-center min-w-[220px] space-y-1">
+                        <div class="text-xs font-mono uppercase text-slate-400">Nilai Konstanta Skala (α)</div>
+                        <div id="alphaResultDisplay" class="text-3xl font-mono font-extrabold text-sky-400">0.586</div>
+                        <div id="sparsityResultDisplay" class="text-xs font-mono text-emerald-400">Sparsity (Nilai 0): 33.3%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: COARSE-GRAINED VS FINE-GRAINED -->
+    <section id="fine-grained" class="py-20 lg:py-28 border-b border-slate-800/70 bg-slate-950/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+                <div class="max-w-3xl space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/15 text-emerald-300 font-mono text-xs font-semibold">
+                        <i class="ph-fill ph-sparkle"></i> BAGIAN 04 • STRATEGI GRANULARITAS SKALA
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-bold text-white tracking-tight">Coarse-Grained vs. Fine-Grained Quantization</h2>
+                    <p class="text-slate-300 text-base leading-relaxed">
+                        Metode standar (<strong>Coarse-Grained</strong>) memukul rata seluruh lapisan dengan <strong>1 skala global (α)</strong> sehingga detail bobot lokal hilang. Strategi <strong>Fine-Grained PTQ</strong> memecah matriks bobot ke grup kecil (ukuran grup <strong>4, 8, atau 16</strong>) agar tiap grup memiliki skala (<code class="font-mono text-sky-300">α₁, α₂, α₃...</code>) tersendiri.
+                    </p>
+                </div>
+
+                <!-- Group Size Interactive Selector -->
+                <div class="glass-card p-2 rounded-2xl flex flex-wrap items-center gap-2 self-start shrink-0">
+                    <button onclick="setGranularity('coarse')" id="granBtnCoarse" class="px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition">
+                        Coarse (Global 16)
+                    </button>
+                    <button onclick="setGranularity(8)" id="granBtn8" class="px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition">
+                        Fine (Grup 8)
+                    </button>
+                    <button onclick="setGranularity(4)" id="granBtn4" class="px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition">
+                        Fine (Grup 4) ★
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive 16-Weight Matrix Comparison -->
+            <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+                <!-- Matrix Visualizer -->
+                <div class="lg:col-span-8 glass-card rounded-3xl p-6 sm:p-9 border border-slate-700/80 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+                        <div class="space-y-1">
+                            <h3 id="granMatrixTitle" class="text-lg sm:text-xl font-bold text-white">Visualisasi Matriks 16 Bobot — Fine-Grained (Ukuran Grup = 4)</h3>
+                            <p class="text-xs sm:text-sm text-slate-400">Perhatikan bagaimana kelompok bobot bernilai kecil tidak ikut terhapus oleh kelompok bobot bernilai besar.</p>
+                        </div>
+                        <button onclick="generateNewMatrixSample()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-sky-300 font-semibold transition flex items-center gap-2 shrink-0">
+                            <i class="ph-bold ph-arrows-clockwise"></i> Acak Distribusi Bobot
+                        </button>
+                    </div>
+
+                    <!-- Groups Container -->
+                    <div id="granularityGroupsContainer" class="space-y-5">
+                        <!-- Rendered dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Reconstruction Error Telemetry -->
+                <div class="lg:col-span-4">
+                    <div class="glass-card rounded-3xl p-6 sm:p-8 border border-slate-700/80 space-y-6">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                            <span class="text-xs font-mono uppercase text-sky-400 font-semibold">Evaluasi Presisi Representasi</span>
+                            <i class="ph-duotone ph-chart-line-up text-2xl text-sky-400"></i>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+                                <div class="text-xs text-slate-400">Jumlah Skala (α) Disimpan</div>
+                                <div id="metricScaleCount" class="text-2xl font-mono font-bold text-white">4 Skala (α₁..α₄)</div>
+                                <div id="metricScaleDesc" class="text-xs text-sky-400 font-mono">1 skala per 4 bobot terner</div>
+                            </div>
+
+                            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+                                <div class="flex justify-between items-center text-xs text-slate-400">
+                                    <span>Galat Rekonstruksi (MAE)</span>
+                                    <span id="metricMaeBadge" class="font-mono text-emerald-400 font-bold">Sangat Rendah</span>
+                                </div>
+                                <div id="metricMaeValue" class="text-2xl font-mono font-bold text-emerald-400">0.084</div>
+                                <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                                    <div id="metricMaeBar" class="h-full bg-emerald-400 rounded-full transition-all duration-500" style="width: 24%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="granularityExplanationBox" class="p-5 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-xs sm:text-sm text-slate-200 leading-relaxed space-y-2">
+                            <!-- Dynamic insight -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: PROSEDUR EKSPERIMEN & UJI SIGNIFIKANSI STATISTIK -->
+    <section id="prosedur" class="py-20 lg:py-28 border-b border-slate-800/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
+            <!-- 7 Steps Pipeline -->
+            <div class="space-y-10">
+                <div class="max-w-3xl space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">
+                        Bagian 05 • Metodologi
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-bold text-white tracking-tight">7 Tahapan Alur Implementasi Kuantisasi</h2>
+                    <p class="text-slate-300 text-base leading-relaxed">
+                        Klik salah satu tahapan di bawah ini (Tahap 1 hingga 7) untuk membaca rincian proses kompresi dari model FP32 hingga pengujian kecepatan di C++/CPU.
+                    </p>
+                </div>
+
+                <!-- Step Pills -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3.5" id="pipelineStepsNav">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Active Step Spotlight Card -->
+                <div id="pipelineStepDetail" class="glass-card rounded-3xl p-7 sm:p-10 border border-sky-500/30">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Statistical Significance Testing -->
+            <div class="space-y-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div class="space-y-2 max-w-2xl">
+                        <div class="text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">Validasi Empiris</div>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-white">Uji Signifikansi Statistik</h3>
+                        <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                            Memvalidasi bahwa perbedaan performa antara <strong>Baseline FP32</strong>, <strong>Ternary Coarse-Grained</strong>, dan <strong>Ternary Fine-Grained</strong> benar-benar signifikan secara statistik.
+                        </p>
+                    </div>
+                    <span class="px-4 py-2.5 rounded-xl bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 font-mono text-xs font-semibold shrink-0">
+                        Populasi Uji: N = 10.000 sampel / kombinasi
+                    </span>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Accuracy Test Card -->
+                    <div class="glass-card rounded-3xl p-7 sm:p-8 border border-slate-800 glass-card-hover flex flex-col justify-between space-y-5">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 font-mono text-xs font-bold">METRIK 1: AKURASI KLASIFIKASI</span>
+                                <i class="ph-duotone ph-target text-3xl text-emerald-400"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-white">Cochran's Q Test &amp; McNemar's Test</h4>
+                            <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                                Menguji apakah terdapat signifikansi perbedaan proporsi keberhasilan prediksi (penurunan atau pemertahanan akurasi) antar ketiga model pada 10.000 sampel uji berpasangan.
+                            </p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs sm:text-sm">
+                            <div class="font-mono text-emerald-400 font-semibold">Mengapa Metode Ini Dipilih?</div>
+                            <ul class="text-slate-300 space-y-1.5">
+                                <li>• <strong>Cochran's Q:</strong> Menguji &gt;2 model sekaligus (FP32 vs Coarse vs Fine) dengan output dikotomis (Benar/Salah).</li>
+                                <li>• <strong>McNemar's Test:</strong> Uji <em>post-hoc</em> berpasangan (tabel kontingensi 2×2) antar dua model spesifik.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Inference Speed Test Card -->
+                    <div class="glass-card rounded-3xl p-7 sm:p-8 border border-slate-800 glass-card-hover flex flex-col justify-between space-y-5">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="px-3 py-1 rounded-lg bg-sky-500/15 text-sky-300 font-mono text-xs font-bold">METRIK 2: KECEPATAN INFERENSI (C++/CPU)</span>
+                                <i class="ph-duotone ph-gauge text-3xl text-sky-400"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-white">Wilcoxon Signed-Rank Test</h4>
+                            <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                                Uji non-parametrik untuk memvalidasi apakah percepatan waktu inferensi (latensi eksekusi CPU) antar ketiga model memiliki perbedaan yang signifikan secara statistik.
+                            </p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs sm:text-sm">
+                            <div class="font-mono text-sky-400 font-semibold">Mengapa Metode Ini Dipilih?</div>
+                            <ul class="text-slate-300 space-y-1.5">
+                                <li>• Data waktu inferensi CPU sering kali tidak berdistribusi normal (condong/<em>skewed</em>).</li>
+                                <li>• Mengukur sampel berpasangan (citra uji yang sama dieksekusi pada ketiga variasi model).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 6: STATE OF THE ART -->
+    <section id="sota" class="py-20 lg:py-28">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <!-- SOTA Explorer -->
+            <div class="space-y-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div class="space-y-3 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">
+                            Bagian 06 • Literatur Terkait
+                        </div>
+                        <h2 class="text-2xl sm:text-4xl font-bold text-white tracking-tight">Matriks State-of-the-Art (SOTA) &amp; Posisi Riset</h2>
+                        <p class="text-slate-300 text-base leading-relaxed">
+                            Perbandingan literatur terdahulu dan bagaimana pendekatan Fine-Grained Ternary PTQ mengisi celah kompresi bobot ekstrem pada Computer Vision.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="sotaFilterGroup">
+                        <button onclick="filterSota('all')" data-sota="all" class="sota-filter-btn px-4 py-2 rounded-xl text-xs font-mono bg-sky-500 text-slate-950 font-bold transition">Semua (4 Paper)</button>
+                        <button onclick="filterSota('cnn')" data-sota="cnn" class="sota-filter-btn px-4 py-2 rounded-xl text-xs font-mono bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Fokus CNN</button>
+                        <button onclick="filterSota('llm')" data-sota="llm" class="sota-filter-btn px-4 py-2 rounded-xl text-xs font-mono bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Inspirasi Fine-Grained LLM</button>
+                    </div>
+                </div>
+
+                <div id="sotaCardsContainer" class="grid md:grid-cols-2 gap-8">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 font-mono font-bold">
+                    <i class="ph-bold ph-cpu text-lg"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-white text-sm">Ternary Post-Training Quantization Learning Hub</div>
+                    <div class="text-xs text-slate-400">Media Pembelajaran Interaktif Kompresi Model Deep Learning &amp; Edge AI</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="#" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-mono border border-slate-800 transition flex items-center gap-1.5">
+                    <i class="ph-bold ph-arrow-up"></i> Kembali ke Atas
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Quiz Modal -->
+    <div id="quizModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-sky-500/40 shadow-2xl space-y-6 relative">
+            <button onclick="toggleQuizModal(false)" class="absolute top-5 right-5 w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                <i class="ph-bold ph-x"></i>
+            </button>
+
+            <div>
+                <span class="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 font-mono text-xs font-bold">KUIS INTERAKTIF MAHASISWA INFORMATIKA</span>
+                <h3 id="quizQuestionTitle" class="text-lg sm:text-xl font-bold text-white mt-3">Pertanyaan 1 dari 3</h3>
+                <p id="quizQuestionText" class="text-sm text-slate-300 mt-1 leading-relaxed"></p>
+            </div>
+
+            <div id="quizOptionsContainer" class="space-y-2.5">
+                <!-- Options injected via JS -->
+            </div>
+
+            <div id="quizFeedbackBox" class="hidden p-4 rounded-2xl text-xs leading-relaxed"></div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                <span id="quizScoreLabel" class="text-xs font-mono text-slate-400">Skor: 0 / 3</span>
+                <button id="quizNextBtn" onclick="nextQuizQuestion()" class="px-5 py-2.5 rounded-xl bg-sky-500 text-slate-950 font-bold text-xs hover:bg-sky-400 transition">
+                    Pertanyaan Berikutnya ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic (Consolidated & Clean) -->
+    <script>
+        // ==========================================
+        // 1. HERO PREVIEW TOGGLE
+        // ==========================================
+        function setHeroMode(mode) {
+            const btnFp32 = document.getElementById('heroBtnFp32');
+            const btnTernary = document.getElementById('heroBtnTernary');
+            const b1Txt = document.getElementById('badge1Txt');
+            const b2Txt = document.getElementById('badge2Txt');
+            const b3Txt = document.getElementById('badge3Txt');
+            const conn3 = document.getElementById('conn3');
+            const caption = document.getElementById('heroCaption');
+
+            if (!btnFp32 || !btnTernary) return;
+
+            if (mode === 'fp32') {
+                btnFp32.className = 'px-3 py-1.5 rounded-lg text-xs font-mono transition bg-amber-400 text-slate-950 font-bold';
+                btnTernary.className = 'px-3 py-1.5 rounded-lg text-xs font-mono transition text-slate-400 hover:text-white';
+                if (b1Txt) b1Txt.textContent = '0.852';
+                if (b2Txt) b2Txt.textContent = '-0.320';
+                if (b3Txt) b3Txt.textContent = '0.150';
+                if (conn3) {
+                    conn3.setAttribute('stroke', '#38bdf8');
+                    conn3.setAttribute('stroke-width', '2.5');
+                }
+                if (caption) {
+                    caption.className = 'p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs sm:text-sm text-amber-200 leading-relaxed';
+                    caption.innerHTML = '<strong>Mode Standar FP32 (32-bit):</strong> Setiap bobot disimpan sebagai angka desimal penuh (<code class="font-mono">0.852, -0.320, 0.150</code>). Akurasi maksimal, namun memakan memori 32-bit per parameter dan membutuhkan operasi perkalian floating-point yang berat.';
+                }
+            } else {
+                btnTernary.className = 'px-3 py-1.5 rounded-lg text-xs font-mono transition bg-emerald-500 text-slate-950 font-bold';
+                btnFp32.className = 'px-3 py-1.5 rounded-lg text-xs font-mono transition text-slate-400 hover:text-white';
+                if (b1Txt) b1Txt.textContent = '+1 (α)';
+                if (b2Txt) b2Txt.textContent = '-1 (-α)';
+                if (b3Txt) b3Txt.textContent = '0 (Pruned)';
+                if (conn3) {
+                    conn3.setAttribute('stroke', '#475569');
+                    conn3.setAttribute('stroke-width', '1.5');
+                }
+                if (caption) {
+                    caption.className = 'p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-xs sm:text-sm text-emerald-200 leading-relaxed';
+                    caption.innerHTML = '<strong>Mode Terner Aktif (~1.58-bit):</strong> Bobot desimal <code class="font-mono">[0.852, -0.32, 0.15]</code> dipetakan menjadi <code class="font-mono">[+1, -1, 0]</code> dengan faktor skala <code class="font-mono">α = 0.586</code>. Koneksi bernilai 0 dieliminasi dan operasi perkalian berubah menjadi penjumlahan/pengurangan sederhana!';
+                }
+            }
+        }
+
+        // ==========================================
+        // 2. BIT-WIDTH PRECISION EXPLORER
+        // ==========================================
+        const precisionData = {
+            fp32: {
+                title: 'FP32 — Full Precision (Standar)',
+                bitsUsed: 32,
+                bitLabel: '32-bit per parameter',
+                compression: '1.0× (Tanpa Kompresi)',
+                speed: 'Lambat (Perkalian Floating-Point 32-bit)',
+                accuracy: 'Maksimal (Baseline 100%)',
+                desc: 'Setiap bobot disimpan menggunakan 1 bit sign, 8 bit exponent, dan 23 bit mantissa. Sangat membebani RAM pada perangkat Edge atau IoT.'
+            },
+            int8: {
+                title: 'INT8 — 8-Bit Integer Quantization',
+                bitsUsed: 8,
+                bitLabel: '8-bit per parameter (256 level nilai)',
+                compression: '4.0× Lebih Hemat Memori',
+                speed: 'Cepat (Operasi Integer 8-bit)',
+                accuracy: 'Penurunan Sangat Kecil (<0.5%)',
+                desc: 'Standar kuantisasi industri umum. Mengubah rentang desimal menjadi bilangan bulat [-128 hingga 127]. Menghemat 75% memori dibanding FP32.'
+            },
+            int4: {
+                title: 'INT4 — Ultra-Low 4-Bit Quantization',
+                bitsUsed: 4,
+                bitLabel: '4-bit per parameter (16 level nilai)',
+                compression: '8.0× Lebih Hemat Memori',
+                speed: 'Sangat Cepat',
+                accuracy: 'Mulai Rentan Turun Tanpa Grup Skala',
+                desc: 'Memangkas representasi menjadi hanya 16 kemungkinan nilai diskrit per bobot. Sering digunakan pada kompresi model modern.'
+            },
+            ternary: {
+                title: 'Ternary — Representasi Terner {-1, 0, +1}',
+                bitsUsed: 2,
+                bitLabel: 'Hanya ~1.58-bit (log₂(3) = 3 nilai diskrit)',
+                compression: '~16× hingga 20× Lebih Hemat Memori!',
+                speed: 'Ekstrem Cepat (Tanpa Operasi Perkalian!)',
+                accuracy: 'Terjaga dengan Pendekatan Fine-Grained PTQ',
+                desc: 'Fokus utama penelitian ini! Memangkas presisi hingga hanya tersisa 3 nilai: {-1, 0, +1}. Dengan grup skala Fine-Grained, akurasi tetap terjaga tanpa perlu training ulang.'
+            }
+        };
+
+        function selectPrecision(key) {
+            const info = precisionData[key];
+            const grid = document.getElementById('bitGridContainer');
+            const countLabel = document.getElementById('activeBitCountLabel');
+            const detailCard = document.getElementById('precisionDetailCard');
+
+            document.querySelectorAll('.prec-btn').forEach(btn => {
+                if (btn.dataset.prec === key) {
+                    btn.className = 'prec-btn px-4 py-2.5 rounded-xl text-xs font-mono font-bold border transition bg-sky-500 text-slate-950 border-sky-400 shadow-lg shadow-sky-500/20';
+                } else {
+                    btn.className = 'prec-btn px-4 py-2.5 rounded-xl text-xs font-mono font-bold border transition bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-500';
+                }
+            });
+
+            if (grid) {
+                grid.innerHTML = '';
+                for (let i = 0; i < 32; i++) {
+                    const cell = document.createElement('div');
+                    const isActive = i < info.bitsUsed;
+                    if (isActive) {
+                        cell.className = 'bit-box h-10 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 text-slate-950 font-mono font-bold text-xs flex items-center justify-center shadow-sm shadow-sky-500/30';
+                        cell.textContent = key === 'ternary' ? (i === 0 ? '+1' : '-1') : (i % 2 === 0 ? '1' : '0');
+                    } else {
+                        cell.className = 'bit-box h-10 rounded-lg bg-slate-900 border border-slate-800 text-slate-600 font-mono text-xs flex items-center justify-center';
+                        cell.textContent = '0';
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+
+            if (countLabel) {
+                countLabel.textContent = key === 'ternary' ? '~1.58 / 32 Bit Terpakai (~95% Hemat!)' : `${info.bitsUsed} / 32 Bit Terpakai`;
+            }
+
+            if (detailCard) {
+                detailCard.innerHTML = `
+                    <div class="inline-block px-3 py-1 rounded-lg bg-sky-500/15 text-sky-300 font-mono text-xs font-bold">${info.bitLabel}</div>
+                    <h4 class="text-xl font-bold text-white">${info.title}</h4>
+                    <p class="text-sm text-slate-300 leading-relaxed">${info.desc}</p>
+                    <div class="space-y-3 pt-4 border-t border-slate-800 text-xs sm:text-sm">
+                        <div class="flex justify-between gap-2"><span class="text-slate-400">Penghematan Memori:</span><span class="font-mono font-bold text-emerald-400 text-right">${info.compression}</span></div>
+                        <div class="flex justify-between gap-2"><span class="text-slate-400">Kecepatan Komputasi:</span><span class="font-mono font-semibold text-sky-300 text-right">${info.speed}</span></div>
+                        <div class="flex justify-between gap-2"><span class="text-slate-400">Karakteristik Akurasi:</span><span class="font-mono text-amber-300 text-right">${info.accuracy}</span></div>
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // 3. ARCHITECTURE & DATASET MATRIX
+        // ==========================================
+        let selectedArch = 'lenet';
+        let selectedDataset = 'mnist';
+
+        const mnistPattern = [
+            0,0,1,1,1,0,0,
+            0,1,0,0,0,1,0,
+            0,0,0,0,1,0,0,
+            0,0,0,1,0,0,0,
+            0,0,1,0,0,0,0,
+            0,1,0,0,0,0,0,
+            0,1,1,1,1,1,0
+        ];
+
+        const fmnistPattern = [
+            0,1,1,0,1,1,0,
+            1,1,1,1,1,1,1,
+            1,0,1,1,1,0,1,
+            0,0,1,1,1,0,0,
+            0,0,1,1,1,0,0,
+            0,0,1,1,1,0,0,
+            0,0,1,1,1,0,0
+        ];
+
+        function updateArchDataset(arch, dataset) {
+            if (arch) selectedArch = arch;
+            if (dataset) selectedDataset = dataset;
+
+            const cardLenet = document.getElementById('cardArchLenet');
+            const checkLenet = document.getElementById('checkLenet');
+            const cardResnet = document.getElementById('cardArchResnet');
+            const checkResnet = document.getElementById('checkResnet');
+            const cardMnist = document.getElementById('cardDataMnist');
+            const checkMnist = document.getElementById('checkMnist');
+            const cardFmnist = document.getElementById('cardDataFmnist');
+            const checkFmnist = document.getElementById('checkFmnist');
+
+            if (cardLenet) {
+                cardLenet.className = selectedArch === 'lenet'
+                    ? 'text-left p-6 rounded-2xl glass-card border-2 border-sky-500 transition space-y-3'
+                    : 'text-left p-6 rounded-2xl glass-card border border-slate-800 hover:border-slate-700 transition space-y-3';
+            }
+            if (checkLenet) {
+                checkLenet.className = selectedArch === 'lenet' ? 'ph-fill ph-check-circle text-sky-400 text-xl' : 'ph-fill ph-check-circle text-slate-600 text-xl';
+            }
+
+            if (cardResnet) {
+                cardResnet.className = selectedArch === 'resnet'
+                    ? 'text-left p-6 rounded-2xl glass-card border-2 border-indigo-500 transition space-y-3'
+                    : 'text-left p-6 rounded-2xl glass-card border border-slate-800 hover:border-slate-700 transition space-y-3';
+            }
+            if (checkResnet) {
+                checkResnet.className = selectedArch === 'resnet' ? 'ph-fill ph-check-circle text-indigo-400 text-xl' : 'ph-fill ph-check-circle text-slate-600 text-xl';
+            }
+
+            if (cardMnist) {
+                cardMnist.className = selectedDataset === 'mnist'
+                    ? 'text-left p-6 rounded-2xl glass-card border-2 border-emerald-500 transition space-y-3'
+                    : 'text-left p-6 rounded-2xl glass-card border border-slate-800 hover:border-slate-700 transition space-y-3';
+            }
+            if (checkMnist) {
+                checkMnist.className = selectedDataset === 'mnist' ? 'ph-fill ph-check-circle text-emerald-400 text-xl' : 'ph-fill ph-check-circle text-slate-600 text-xl';
+            }
+
+            if (cardFmnist) {
+                cardFmnist.className = selectedDataset === 'fmnist'
+                    ? 'text-left p-6 rounded-2xl glass-card border-2 border-rose-500 transition space-y-3'
+                    : 'text-left p-6 rounded-2xl glass-card border border-slate-800 hover:border-slate-700 transition space-y-3';
+            }
+            if (checkFmnist) {
+                checkFmnist.className = selectedDataset === 'fmnist' ? 'ph-fill ph-check-circle text-rose-400 text-xl' : 'ph-fill ph-check-circle text-slate-600 text-xl';
+            }
+
+            const archName = selectedArch === 'lenet' ? 'LeNet-5' : 'ResNet-18';
+            const dataName = selectedDataset === 'mnist' ? 'MNIST' : 'Fashion-MNIST';
+            const titleEl = document.getElementById('simComboTitle');
+            if (titleEl) titleEl.textContent = `${archName} pada Dataset ${dataName}`;
+
+            const badge = document.getElementById('simComboBadge');
+            const memFp32 = document.getElementById('memFp32Val');
+            const memTernary = document.getElementById('memTernaryVal');
+            const insight = document.getElementById('archInsightText');
+
+            if (selectedArch === 'lenet') {
+                if (memFp32) memFp32.textContent = '~240 KB (~60.000 param)';
+                if (memTernary) memTernary.textContent = '~15 KB (Kompresi ~16×)';
+            } else {
+                if (memFp32) memFp32.textContent = '~44.7 MB (~11.17 Juta param)';
+                if (memTernary) memTernary.textContent = '~2.8 MB (Hemat >41 MB!)';
+            }
+
+            if (badge && insight) {
+                if (selectedArch === 'lenet' && selectedDataset === 'mnist') {
+                    badge.textContent = 'Baseline Fondasi CNN';
+                    badge.className = 'px-3.5 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-semibold';
+                    insight.innerHTML = '<strong>Skenario 1 (Fondasi Sederhana):</strong> Menguji LeNet-5 (~60K parameter) pada citra angka tulisan tangan MNIST. Karena jumlah parameter sedikit, setiap bobot sangat berharga—Fine-Grained PTQ mencegah hilangnya fitur dasar.';
+                } else if (selectedArch === 'lenet' && selectedDataset === 'fmnist') {
+                    badge.textContent = 'Uji Stress Arsitektur Kecil';
+                    badge.className = 'px-3.5 py-1.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-mono font-semibold';
+                    insight.innerHTML = '<strong>Skenario 2 (Kapasitas Kecil vs Data Rumit):</strong> Fashion-MNIST memiliki variasi tekstur pakaian dan sepatu yang kompleks. Menguji seberapa jauh grup skala kecil (4, 8, 16) membantu LeNet-5 mempertahankan akurasi.';
+                } else if (selectedArch === 'resnet' && selectedDataset === 'mnist') {
+                    badge.textContent = 'Kompresi Masif Jaringan Dalam';
+                    badge.className = 'px-3.5 py-1.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-mono font-semibold';
+                    insight.innerHTML = '<strong>Skenario 3 (Efisiensi Jaringan Dalam):</strong> ResNet-18 memiliki 18 layer dengan <em>skip connection</em> (~11 Juta parameter). Kuantisasi terner memangkas ukuran model dari ~44.7 MB menjadi hanya ~2.8 MB!';
+                } else {
+                    badge.textContent = 'Pengujian Ketahanan Puncak';
+                    badge.className = 'px-3.5 py-1.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-mono font-semibold';
+                    insight.innerHTML = '<strong>Skenario 4 (Kompleksitas Penuh):</strong> Menguji ResNet-18 pada Fashion-MNIST. Menunjukkan efektivitas penuh pendekatan <em>Fine-Grained Ternary PTQ</em> dalam menjaga detail tekstur tanpa <em>fine-tuning</em>.';
+                }
+            }
+
+            const preview = document.getElementById('datasetPixelPreview');
+            if (preview) {
+                preview.innerHTML = '';
+                const pattern = selectedDataset === 'mnist' ? mnistPattern : fmnistPattern;
+                const activeColor = selectedDataset === 'mnist' ? 'bg-emerald-400' : 'bg-rose-400';
+                pattern.forEach(px => {
+                    const div = document.createElement('div');
+                    div.className = `rounded-[2px] transition-colors duration-300 ${px ? activeColor : 'bg-slate-950'}`;
+                    preview.appendChild(div);
+                });
+            }
+        }
+
+        // ==========================================
+        // 4. TERNARY WEIGHT MAPPING SIMULATOR
+        // ==========================================
+        let simWeights = [0.852, -0.320, 0.150];
+
+        function syncInputFromWeights() {
+            const inputEl = document.getElementById('customWeightsInput');
+            if (inputEl) {
+                inputEl.value = simWeights.join(', ');
+            }
+        }
+
+        function handleTextWeightInput() {
+            const inputEl = document.getElementById('customWeightsInput');
+            if (!inputEl) return;
+            const raw = inputEl.value;
+            const parsed = raw
+                .split(',')
+                .map(s => parseFloat(s.trim()))
+                .filter(n => !isNaN(n));
+
+            if (parsed.length > 0) {
+                simWeights = parsed.slice(0, 12);
+                runTernarySimulator(false);
+            }
+        }
+
+        function updateSingleWeight(idx, valStr) {
+            const num = parseFloat(valStr);
+            if (!isNaN(num)) {
+                simWeights[idx] = num;
+                syncInputFromWeights();
+                runTernarySimulator(false);
+            }
+        }
+
+        function removeWeightSlot(idx) {
+            if (simWeights.length <= 2) return;
+            simWeights.splice(idx, 1);
+            syncInputFromWeights();
+            runTernarySimulator(true);
+        }
+
+        function addNewWeightSlot() {
+            if (simWeights.length >= 12) return;
+            const randomNew = Math.round((Math.random() * 1.4 - 0.7) * 1000) / 1000;
+            simWeights.push(randomNew);
+            syncInputFromWeights();
+            runTernarySimulator(true);
+        }
+
+        function runTernarySimulator(rebuildCards = true) {
+            const n = simWeights.length;
+            const absWeights = simWeights.map(w => Math.abs(w));
+            const sumAbs = absWeights.reduce((a, b) => a + b, 0);
+            const meanAbs = n > 0 ? sumAbs / n : 0;
+
+            // Rumus Threshold Terner: Δ = 0.7 * E(|W|)
+            const threshold = 0.7 * meanAbs;
+
+            const threshDisplay = document.getElementById('thresholdValDisplay');
+            const countBadge = document.getElementById('weightCountBadge');
+            const threshSteps = document.getElementById('thresholdStepsBox');
+
+            if (threshDisplay) threshDisplay.textContent = `Δ = ${threshold.toFixed(3)}`;
+            if (countBadge) countBadge.textContent = `Total: ${n} Bobot Parameter`;
+
+            const absListStr = absWeights.length <= 4
+                ? absWeights.map(a => a.toFixed(3)).join(' + ')
+                : `${absWeights.slice(0, 3).map(a => a.toFixed(3)).join(' + ')} + ...`;
+
+            if (threshSteps) {
+                threshSteps.innerHTML = `
+                    <div>1. Rata-rata E(|W|) = (${absListStr}) / ${n} = <strong class="text-white">${meanAbs.toFixed(4)}</strong></div>
+                    <div>2. Threshold Δ = 0.7 × ${meanAbs.toFixed(4)} = <strong class="text-amber-300">${threshold.toFixed(3)}</strong></div>
+                `;
+            }
+
+            const container = document.getElementById('ternaryWeightsContainer');
+            if (container && rebuildCards) {
+                container.innerHTML = '';
+            }
+
+            let passedMagnitudes = [];
+            let zeroCount = 0;
+
+            simWeights.forEach((w, idx) => {
+                let ternVal = '0';
+                let badgeClass = 'bg-slate-800 border-slate-600 text-slate-300';
+                let cardBorder = 'border-slate-800';
+                let ruleText = `|${w.toFixed(3)}| ≤ ${threshold.toFixed(3)}`;
+
+                if (w > threshold) {
+                    ternVal = '+1';
+                    badgeClass = 'bg-emerald-500/20 border-emerald-400 text-emerald-300';
+                    cardBorder = 'border-emerald-500/40';
+                    ruleText = `${w.toFixed(3)} > +${threshold.toFixed(3)}`;
+                    passedMagnitudes.push(Math.abs(w));
+                } else if (w < -threshold) {
+                    ternVal = '-1';
+                    badgeClass = 'bg-rose-500/20 border-rose-400 text-rose-300';
+                    cardBorder = 'border-rose-500/40';
+                    ruleText = `${w.toFixed(3)} < -${threshold.toFixed(3)}`;
+                    passedMagnitudes.push(Math.abs(w));
+                } else {
+                    ternVal = '0';
+                    zeroCount++;
+                }
+
+                if (container && rebuildCards) {
+                    const card = document.createElement('div');
+                    card.id = `simWeightCard_${idx}`;
+                    card.className = `p-5 rounded-2xl bg-slate-900/90 border ${cardBorder} flex flex-col justify-between space-y-4 transition-all`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span class="font-semibold">BOBOT W<sub>${idx + 1}</sub></span>
+                            ${simWeights.length > 2 ? `<button onclick="removeWeightSlot(${idx})" title="Hapus bobot ini" class="text-slate-500 hover:text-rose-400 transition p-1"><i class="ph-bold ph-trash"></i></button>` : ''}
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs text-slate-400 font-mono block">Nilai Asli FP32:</label>
+                            <input type="number" step="0.01" value="${w}" 
+                                oninput="updateSingleWeight(${idx}, this.value)"
+                                class="w-full text-center py-2 px-3 rounded-xl bg-slate-950 border border-slate-700 focus:border-sky-400 focus:outline-none font-mono font-bold text-base text-white">
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                            <div class="space-y-0.5">
+                                <span class="text-[11px] font-mono text-slate-400 block">Hasil Terner:</span>
+                                <div id="simWeightRule_${idx}" class="text-xs font-mono text-slate-300">${ruleText}</div>
+                            </div>
+                            <div id="simWeightBadge_${idx}" class="w-12 h-11 rounded-xl border ${badgeClass} font-mono font-extrabold text-lg flex items-center justify-center shrink-0">
+                                ${ternVal}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                } else {
+                    const card = document.getElementById(`simWeightCard_${idx}`);
+                    const badge = document.getElementById(`simWeightBadge_${idx}`);
+                    const rule = document.getElementById(`simWeightRule_${idx}`);
+                    if (card && badge && rule) {
+                        card.className = `p-5 rounded-2xl bg-slate-900/90 border ${cardBorder} flex flex-col justify-between space-y-4 transition-all`;
+                        badge.className = `w-12 h-11 rounded-xl border ${badgeClass} font-mono font-extrabold text-lg flex items-center justify-center shrink-0`;
+                        badge.textContent = ternVal;
+                        rule.textContent = ruleText;
+                    } else if (container) {
+                        runTernarySimulator(true);
+                        return;
+                    }
+                }
+            });
+
+            const alphaDisplay = document.getElementById('alphaResultDisplay');
+            const formulaSteps = document.getElementById('alphaFormulaSteps');
+            const sparsityDisplay = document.getElementById('sparsityResultDisplay');
+
+            if (alphaDisplay && formulaSteps && sparsityDisplay) {
+                if (passedMagnitudes.length > 0) {
+                    const sum = passedMagnitudes.reduce((a, b) => a + b, 0);
+                    const alpha = sum / passedMagnitudes.length;
+                    alphaDisplay.textContent = alpha.toFixed(3);
+                    const magList = passedMagnitudes.map(m => m.toFixed(3)).join(' + ');
+                    formulaSteps.innerHTML = `Bobot lolos (|W| &gt; Δ): (${magList}) / ${passedMagnitudes.length} = <strong>${alpha.toFixed(3)}</strong>`;
+                } else {
+                    alphaDisplay.textContent = '0.000';
+                    formulaSteps.innerHTML = 'Tidak ada bobot yang melampaui Threshold Δ.';
+                }
+
+                const sparsityPct = ((zeroCount / simWeights.length) * 100).toFixed(1);
+                sparsityDisplay.textContent = `Sparsity (Nilai 0): ${sparsityPct}% (${zeroCount}/${simWeights.length})`;
+            }
+        }
+
+        function resetDefaultExample() {
+            simWeights = [0.852, -0.320, 0.150];
+            syncInputFromWeights();
+            runTernarySimulator(true);
+        }
+
+        function loadPresetOutlier() {
+            simWeights = [0.852, -0.320, 0.150, -0.740, 0.095, 0.480];
+            syncInputFromWeights();
+            runTernarySimulator(true);
+        }
+
+        function randomizeWeights() {
+            const count = simWeights.length || 6;
+            simWeights = Array.from({ length: count }, () => {
+                const val = (Math.random() * 1.8 - 0.9);
+                return Math.round(val * 1000) / 1000;
+            });
+            syncInputFromWeights();
+            runTernarySimulator(true);
+        }
+
+        // ==========================================
+        // 5. COARSE-GRAINED VS FINE-GRAINED MATRIX
+        // ==========================================
+        let matrixWeights16 = [
+            0.92, -0.84, 0.78, -0.11,
+            0.22, -0.19, 0.24, 0.04,
+            -0.64, 0.58, -0.08, 0.52,
+            0.31, -0.28, 0.05, -0.33
+        ];
+        let currentGranularity = 4;
+
+        function setGranularity(mode) {
+            currentGranularity = mode;
+
+            const btnCoarse = document.getElementById('granBtnCoarse');
+            const btn8 = document.getElementById('granBtn8');
+            const btn4 = document.getElementById('granBtn4');
+
+            if (btnCoarse) {
+                btnCoarse.className = mode === 'coarse'
+                    ? 'px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition bg-rose-500 text-white shadow-lg shadow-rose-500/30'
+                    : 'px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition text-slate-300 hover:bg-slate-800';
+            }
+            if (btn8) {
+                btn8.className = mode === 8
+                    ? 'px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/30'
+                    : 'px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition text-slate-300 hover:bg-slate-800';
+            }
+            if (btn4) {
+                btn4.className = mode === 4
+                    ? 'px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition bg-sky-500 text-slate-950 shadow-lg shadow-sky-500/30'
+                    : 'px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition text-slate-300 hover:bg-slate-800';
+            }
+
+            renderGranularityMatrix();
+        }
+
+        function renderGranularityMatrix() {
+            const groupSize = currentGranularity === 'coarse' ? 16 : currentGranularity;
+            const numGroups = 16 / groupSize;
+            const container = document.getElementById('granularityGroupsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let totalAbsError = 0;
+            const groupColors = [
+                'border-sky-500/40 bg-sky-950/20',
+                'border-emerald-500/40 bg-emerald-950/20',
+                'border-indigo-500/40 bg-indigo-950/20',
+                'border-amber-500/40 bg-amber-950/20'
+            ];
+
+            for (let g = 0; g < numGroups; g++) {
+                const slice = matrixWeights16.slice(g * groupSize, (g + 1) * groupSize);
+                const meanAbs = slice.reduce((acc, val) => acc + Math.abs(val), 0) / slice.length;
+                const delta = 0.7 * meanAbs;
+
+                const passed = slice.filter(val => Math.abs(val) > delta);
+                const alpha = passed.length > 0
+                    ? passed.reduce((acc, val) => acc + Math.abs(val), 0) / passed.length
+                    : 0;
+
+                const groupDiv = document.createElement('div');
+                const borderStyle = currentGranularity === 'coarse' ? 'border-rose-500/40 bg-rose-950/15' : groupColors[g % groupColors.length];
+                groupDiv.className = `p-4 rounded-2xl border ${borderStyle} space-y-3`;
+
+                let cellsHtml = '';
+                slice.forEach((w) => {
+                    let q = 0;
+                    let qColor = 'text-slate-500 bg-slate-900 border-slate-800';
+                    if (w > delta) {
+                        q = 1;
+                        qColor = 'text-emerald-300 bg-emerald-500/20 border-emerald-500/40';
+                    } else if (w < -delta) {
+                        q = -1;
+                        qColor = 'text-rose-300 bg-rose-500/20 border-rose-500/40';
+                    }
+                    const recon = q * alpha;
+                    totalAbsError += Math.abs(w - recon);
+
+                    cellsHtml += `
+                        <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800/90 flex flex-col justify-between space-y-2 text-center">
+                            <div class="text-xs font-mono text-slate-400">FP32: <span class="text-white font-bold">${w.toFixed(2)}</span></div>
+                            <div class="py-1.5 rounded-lg border font-mono font-bold text-sm ${qColor}">
+                                ${q > 0 ? '+1' : q}
+                            </div>
+                            <div class="text-xs font-mono text-sky-300">Rekon: <strong>${recon.toFixed(2)}</strong></div>
+                        </div>
+                    `;
+                });
+
+                groupDiv.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-mono pb-1">
+                        <span class="font-bold text-white">
+                            ${currentGranularity === 'coarse' ? '1 Skala Global (Seluruh 16 Bobot Dipukul Rata)' : `Grup #${g + 1} (${groupSize} Parameter Lokal)`}
+                        </span>
+                        <div class="flex flex-wrap gap-4">
+                            <span class="text-slate-300">Threshold Δ<sub>${g + 1}</sub> = <strong class="text-amber-300">${delta.toFixed(3)}</strong></span>
+                            <span class="text-slate-300">Skala α<sub>${g + 1}</sub> = <strong class="text-sky-300">${alpha.toFixed(3)}</strong></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        ${cellsHtml}
+                    </div>
+                `;
+                container.appendChild(groupDiv);
+            }
+
+            const mae = totalAbsError / 16;
+            const granTitle = document.getElementById('granMatrixTitle');
+            const scaleCount = document.getElementById('metricScaleCount');
+            const scaleDesc = document.getElementById('metricScaleDesc');
+            const maeVal = document.getElementById('metricMaeValue');
+            const maeBar = document.getElementById('metricMaeBar');
+            const maeBadge = document.getElementById('metricMaeBadge');
+            const expBox = document.getElementById('granularityExplanationBox');
+
+            if (granTitle) {
+                granTitle.textContent = currentGranularity === 'coarse'
+                    ? 'Visualisasi Matriks 16 Bobot — Metode Standar Coarse-Grained (1 Skala Global)'
+                    : `Visualisasi Matriks 16 Bobot — Usulan Fine-Grained (Ukuran Grup = ${currentGranularity})`;
+            }
+
+            if (scaleCount) {
+                scaleCount.textContent = currentGranularity === 'coarse'
+                    ? '1 Skala Global (α)'
+                    : `${numGroups} Skala Lokal (α₁..α${numGroups})`;
+            }
+
+            if (scaleDesc) {
+                scaleDesc.textContent = currentGranularity === 'coarse'
+                    ? 'Seluruh lapisan dipukul rata dengan 1 threshold'
+                    : `1 skala khusus setiap ${groupSize} parameter bobot`;
+            }
+
+            if (maeVal) maeVal.textContent = mae.toFixed(4);
+
+            if (maeBar && maeBadge && expBox) {
+                if (currentGranularity === 'coarse') {
+                    maeBar.style.width = '78%';
+                    maeBar.className = 'h-full bg-rose-500 rounded-full transition-all duration-500';
+                    maeBadge.textContent = 'Tinggi (Kehilangan Detail)';
+                    maeBadge.className = 'font-mono text-rose-400 font-bold';
+                    expBox.className = 'p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs sm:text-sm text-rose-200 leading-relaxed space-y-2';
+                    expBox.innerHTML = `
+                        <div><strong>Masalah Coarse-Grained Terdeteksi:</strong></div>
+                        <p>Perhatikan bobot baris ke-2 (<code class="font-mono">0.22, -0.19, 0.24</code>). Karena disatukan dengan bobot besar (<code class="font-mono">0.92, -0.84</code>), nilai Threshold global menjadi terlalu tinggi sehingga <strong>seluruh fitur halus pada baris ke-2 terhapus menjadi 0!</strong></p>
+                    `;
+                } else {
+                    maeBar.style.width = currentGranularity === 4 ? '24%' : '42%';
+                    maeBar.className = 'h-full bg-emerald-400 rounded-full transition-all duration-500';
+                    maeBadge.textContent = currentGranularity === 4 ? 'Sangat Rendah (Akurat)' : 'Rendah (Terjaga)';
+                    maeBadge.className = 'font-mono text-emerald-400 font-bold';
+                    expBox.className = 'p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs sm:text-sm text-emerald-200 leading-relaxed space-y-2';
+                    expBox.innerHTML = `
+                        <div><strong>Keunggulan Fine-Grained (Grup ${currentGranularity}):</strong></div>
+                        <p>Grup #2 (<code class="font-mono">0.22, -0.19, 0.24</code>) kini memiliki skala lokal sendiri (<code class="font-mono">α₂</code>) yang adaptif! Fitur-fitur halus tidak lagi tergilas oleh grup bobot bermagnitudo besar, sehingga akurasi model terjaga.</p>
+                    `;
+                }
+            }
+        }
+
+        function generateNewMatrixSample() {
+            matrixWeights16 = [
+                ...(Array.from({ length: 4 }, () => +(Math.random() * 1.4 - 0.7).toFixed(2))),
+                ...(Array.from({ length: 4 }, () => +(Math.random() * 0.4 - 0.2).toFixed(2))),
+                ...(Array.from({ length: 4 }, () => +(Math.random() * 1.0 - 0.5).toFixed(2))),
+                ...(Array.from({ length: 4 }, () => +(Math.random() * 0.6 - 0.3).toFixed(2)))
+            ];
+            renderGranularityMatrix();
+        }
+
+        // ==========================================
+        // 6. 7-STEP EXPERIMENT PIPELINE
+        // ==========================================
+        const pipelineSteps = [
+            {
+                step: 1,
+                title: 'Exploratory Data Analysis (EDA)',
+                short: 'EDA Dataset',
+                icon: 'ph-magnifying-glass',
+                desc: 'Memeriksa lebih dalam terhadap struktur dataset MNIST dan Fashion-MNIST (distribusi kelas, dimensi piksel 28×28 grayscale, normalisasi nilai intensitas piksel).',
+                output: 'Dataset bersih dan siap masuk ke pipeline pelatihan serta pengujian (10.000 sampel uji).'
+            },
+            {
+                step: 2,
+                title: 'Definisi Fungsi Modular',
+                short: 'Fungsi Modular',
+                icon: 'ph-puzzle-piece',
+                desc: 'Mendefinisikan seluruh fungsi modular yang akan digunakan berulang kali, baik saat training model maupun fungsi kalkulasi threshold (Δ) dan pemetaan bobot kuantisasi.',
+                output: 'Modul kode yang reusable, terstruktur, dan konsisten untuk keempat skenario eksperimen.'
+            },
+            {
+                step: 3,
+                title: 'Training Dasar (Model Baseline FP32)',
+                short: 'Training FP32',
+                icon: 'ph-graduation-cap',
+                desc: 'Melatih dan mengevaluasi model LeNet-5 dan ResNet-18 dalam presisi penuh (FP32) hingga konvergen. Model ini disimpan sebagai acuan (baseline) tanpa perlu dilatih ulang lagi.',
+                output: 'Bobot Pre-trained FP32 (LeNet-5 & ResNet-18) beserta metrik akurasi baseline.'
+            },
+            {
+                step: 4,
+                title: 'Ternary PTQ Coarse-Grained',
+                short: 'PTQ Coarse',
+                icon: 'ph-sliders',
+                desc: 'Melakukan Post-Training Quantization ke bobot terner {-1, 0, +1} menggunakan metode standar: hanya satu skala (α) dan satu threshold per lapisan (layer-wise).',
+                output: 'Model Terner Coarse-Grained sebagai pembanding terhadap metode usulan.'
+            },
+            {
+                step: 5,
+                title: 'Ternary PTQ Fine-Grained (Usulan)',
+                short: 'PTQ Fine ★',
+                icon: 'ph-grid-four',
+                desc: 'Melakukan kuantisasi ke bobot terner dengan memecah matriks bobot menjadi grup-grup kecil (ukuran grup 4, 8, dan 16) sehingga setiap grup memiliki skala (α) masing-masing.',
+                output: 'Model Terner Fine-Grained dengan detail representasi bobot yang terjaga.'
+            },
+            {
+                step: 6,
+                title: 'Perbandingan & Analisis pada C++/CPU',
+                short: 'Uji C++/CPU',
+                icon: 'ph-cpu',
+                desc: 'Mengeksekusi inferensi model pada lingkungan C++/CPU untuk mengukur tiga metrik utama secara objektif tanpa bias overhead framework.',
+                output: 'Data terukur: (1) Akurasi Klasifikasi, (2) Rasio Kompresi Memori, dan (3) Kecepatan Inferensi.'
+            },
+            {
+                step: 7,
+                title: 'Uji Signifikansi Statistik',
+                short: 'Uji Statistik',
+                icon: 'ph-chart-bar',
+                desc: 'Menguji hasil kuantisasi menggunakan Cochran\'s Q Test & McNemar\'s Test untuk akurasi, serta Wilcoxon Signed-Rank Test untuk kecepatan inferensi pada 10.000 sampel uji.',
+                output: 'Kesimpulan valid secara ilmiah apakah perbedaan performa signifikan secara statistik.'
+            }
+        ];
+
+        function selectPipelineStep(stepNumber) {
+            const nav = document.getElementById('pipelineStepsNav');
+            const detail = document.getElementById('pipelineStepDetail');
+            if (!nav || !detail) return;
+            nav.innerHTML = '';
+
+            pipelineSteps.forEach(item => {
+                const isActive = item.step === stepNumber;
+                const btn = document.createElement('button');
+                btn.onclick = () => selectPipelineStep(item.step);
+                btn.className = isActive
+                    ? 'p-3.5 rounded-2xl bg-sky-500 text-slate-950 font-bold text-left transition shadow-lg shadow-sky-500/25 flex flex-col justify-between'
+                    : 'p-3.5 rounded-2xl glass-card hover:border-slate-600 text-slate-300 text-left transition flex flex-col justify-between';
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between w-full mb-2">
+                        <span class="text-xs font-mono ${isActive ? 'text-slate-900 font-extrabold' : 'text-sky-400'}">TAHAP 0${item.step}</span>
+                        <i class="ph-bold ${item.icon} text-lg"></i>
+                    </div>
+                    <div class="text-xs font-bold leading-snug">${item.short}</div>
+                `;
+                nav.appendChild(btn);
+            });
+
+            const activeItem = pipelineSteps.find(s => s.step === stepNumber);
+            if (!activeItem) return;
+
+            detail.innerHTML = `
+                <div class="grid md:grid-cols-12 gap-6 items-center">
+                    <div class="md:col-span-8 space-y-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/15 text-sky-300 font-mono text-xs font-bold">
+                            TAHAP ${activeItem.step} DARI 7 • PROSEDUR SEKUENSIAL
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white">${activeItem.title}</h3>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">${activeItem.desc}</p>
+                    </div>
+                    <div class="md:col-span-4 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+                        <div class="text-xs font-mono uppercase text-emerald-400 flex items-center gap-1.5">
+                            <i class="ph-fill ph-check-square-offset"></i> Output Tahapan Ini:
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${activeItem.output}</p>
+                        <div class="pt-2 flex justify-between">
+                            <button onclick="selectPipelineStep(${activeItem.step > 1 ? activeItem.step - 1 : 7})" class="text-xs font-mono text-slate-400 hover:text-white">← Sebelumnya</button>
+                            <button onclick="selectPipelineStep(${activeItem.step < 7 ? activeItem.step + 1 : 1})" class="text-xs font-mono text-sky-400 hover:text-sky-300 font-bold">Selanjutnya →</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 7. STATE OF THE ART
+        // ==========================================
+        const sotaList = [
+            {
+                id: 1,
+                category: 'cnn',
+                title: 'Post Training Quantization in LeNet-5 Algorithm for Efficient Inference',
+                model: 'LeNet-5',
+                dataset: 'MNIST dan Fashion-MNIST',
+                method: 'Post-Training Quantization ke bit INT16 dan INT8.',
+                novelty: 'Memperluas eksplorasi ke arsitektur ResNet-18 dan menekan presisi ke bobot terner ekstrem 1.58-bit.'
+            },
+            {
+                id: 2,
+                category: 'cnn',
+                title: 'A Hardware-Friendly Low-Bit Power-of-Two Quantization Method for CNNs and Its FPGA Implementation',
+                model: 'LeNet-5 dan ResNet',
+                dataset: 'MNIST dan CIFAR-10',
+                method: 'Global Sign-based Network Quantization (GSNQ) berbasis power-of-two yang hardware-friendly.',
+                novelty: 'Menerapkan skema Fine-Grained (multi-skala per grup kecil) untuk Post-Training Quantization ke bobot terner (1.58-bit).'
+            },
+            {
+                id: 3,
+                category: 'cnn',
+                title: 'An Integrated Approach to Produce Robust Deep Neural Network Models with High Efficiency',
+                model: 'En₂ResNet20 (0.54M parameter)',
+                dataset: 'MNIST dan Fashion-MNIST (FMNIST)',
+                method: 'Binary Quantization (BR) + Trade-off Loss Function + Ensemble ResNet dengan Quantization Aware Training (QAT).',
+                novelty: 'Menggunakan pendekatan Post-Training Quantization tanpa beban retraining QAT yang berat dan lama.'
+            },
+            {
+                id: 4,
+                category: 'llm',
+                title: 'Dual Grained Quantization: Efficient Fine-Grained Quantization for LLM',
+                model: 'Large Language Models (LLMs) / Transformers',
+                dataset: 'Dataset NLP (WikiText-2, C4)',
+                method: 'Dual Grained Quantization (DGQ) yang mengombinasikan skala group-wise (fine-grained) dan channel-wise (coarse-grained) pada PTQ INT4.',
+                novelty: 'Mengadaptasi filosofi Fine-Grained ke domain Computer Vision (dua arsitektur CNN) pada presisi ekstrem Terner (1.58-bit).'
+            }
+        ];
+
+        function filterSota(cat) {
+            const container = document.getElementById('sotaCardsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            document.querySelectorAll('.sota-filter-btn').forEach(btn => {
+                if (btn.dataset.sota === cat) {
+                    btn.className = 'sota-filter-btn px-4 py-2 rounded-xl text-xs font-mono bg-sky-500 text-slate-950 font-bold transition';
+                } else {
+                    btn.className = 'sota-filter-btn px-4 py-2 rounded-xl text-xs font-mono bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+                }
+            });
+
+            const filtered = cat === 'all' ? sotaList : sotaList.filter(item => item.category === cat);
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-3xl p-7 sm:p-8 border border-slate-800 glass-card-hover flex flex-col justify-between space-y-5';
+                card.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-sky-300 font-mono text-xs font-semibold">${item.model}</span>
+                            <span class="text-xs font-mono text-slate-400">${item.dataset}</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-white leading-snug">${item.title}</h4>
+                        <div class="text-xs sm:text-sm text-slate-300 bg-slate-900/90 p-4 rounded-2xl border border-slate-800 leading-relaxed">
+                            <span class="text-slate-400 font-mono text-xs block mb-1">METODE TERDAHULU:</span>
+                            ${item.method}
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs sm:text-sm text-emerald-200 leading-relaxed">
+                        <span class="font-mono font-bold text-emerald-400 text-xs block mb-1">★ KEUNGGULAN PENDEKATAN INI:</span>
+                        ${item.novelty}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // 8. INTERACTIVE QUIZ MODAL
+        // ==========================================
+        const quizQuestions = [
+            {
+                q: 'Pada mekanisme kuantisasi terner, jika diketahui bobot asli [0.852, -0.32, 0.15] dan nilai Threshold Δ = 0.309 (dihitung dari Δ = 0.7 × E(|W|)), berapakah hasil bobot terner dan faktor skala (α)?',
+                options: [
+                    'Bobot Terner: [+1, -1, 0] dan Skala α = 0.586',
+                    'Bobot Terner: [+1, 0, -1] dan Skala α = 0.254',
+                    'Bobot Terner: [+1, -1, +1] dan Skala α = 0.440'
+                ],
+                correct: 0,
+                explanation: 'Tepat sekali! Karena 0.852 > 0.309 (+1), -0.32 < -0.309 (-1), dan |0.15| ≤ 0.309 (0). Bobot yang lolos threshold adalah 0.852 dan 0.32, sehingga rata-rata absolutnya α = (0.852 + 0.32) / 2 = 0.586.'
+            },
+            {
+                q: 'Mengapa pendekatan Fine-Grained PTQ lebih unggul menjaga akurasi dibandingkan Coarse-Grained PTQ pada bobot terner 1.58-bit?',
+                options: [
+                    'Karena Fine-Grained melatih ulang (retraining) seluruh jaringan dari awal',
+                    'Karena matriks bobot dipecah ke grup kecil (4, 8, 16) dengan skala (α) masing-masing sehingga detail lokal tidak tergilas skala global',
+                    'Karena Fine-Grained mengubah bobot menjadi 32-bit kembali saat inferensi'
+                ],
+                correct: 1,
+                explanation: 'Benar! Pada Coarse-Grained, 1 skala global memukul rata seluruh layer. Dengan memecah ke grup kecil (4, 8, 16), tiap kelompok memiliki skala α sendiri sehingga mencegah hilangnya informasi penting.'
+            },
+            {
+                q: 'Metode uji statistik apa yang digunakan untuk memvalidasi signifikansi perbedaan KECEPATAN INFERENSI antar model pada 10.000 sampel uji?',
+                options: [
+                    'Cochran\'s Q Test',
+                    'McNemar\'s Test',
+                    'Wilcoxon Signed-Rank Test'
+                ],
+                correct: 2,
+                explanation: 'Benar! Wilcoxon Signed-Rank Test digunakan untuk menguji perbedaan kecepatan inferensi (waktu kontinu berpasangan), sedangkan Cochran\'s Q & McNemar\'s Test digunakan untuk menguji signifikansi akurasi klasifikasi.'
+            }
+        ];
+
+        let currentQuizIdx = 0;
+        let quizScore = 0;
+
+        function toggleQuizModal(show) {
+            const modal = document.getElementById('quizModal');
+            if (!modal) return;
+            if (show) {
+                currentQuizIdx = 0;
+                quizScore = 0;
+                renderQuizQuestion();
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function renderQuizQuestion() {
+            const item = quizQuestions[currentQuizIdx];
+            const qTitle = document.getElementById('quizQuestionTitle');
+            const qText = document.getElementById('quizQuestionText');
+            const scoreLabel = document.getElementById('quizScoreLabel');
+            const feedback = document.getElementById('quizFeedbackBox');
+            const optContainer = document.getElementById('quizOptionsContainer');
+
+            if (qTitle) qTitle.textContent = `Pertanyaan ${currentQuizIdx + 1} dari ${quizQuestions.length}`;
+            if (qText) qText.textContent = item.q;
+            if (scoreLabel) scoreLabel.textContent = `Skor: ${quizScore} / ${quizQuestions.length}`;
+            if (feedback) feedback.classList.add('hidden');
+
+            if (optContainer) {
+                optContainer.innerHTML = '';
+                item.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'w-full text-left p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs sm:text-sm text-slate-200 transition';
+                    btn.textContent = opt;
+                    btn.onclick = () => checkQuizAnswer(idx, btn);
+                    optContainer.appendChild(btn);
+                });
+            }
+        }
+
+        function checkQuizAnswer(selectedIdx, btnElem) {
+            const item = quizQuestions[currentQuizIdx];
+            const feedback = document.getElementById('quizFeedbackBox');
+            const optContainer = document.getElementById('quizOptionsContainer');
+            if (!feedback || !optContainer) return;
+
+            const buttons = optContainer.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            if (selectedIdx === item.correct) {
+                quizScore++;
+                btnElem.className = 'w-full text-left p-3.5 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 text-xs sm:text-sm text-emerald-200 font-bold';
+                feedback.className = 'p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200 leading-relaxed block';
+            } else {
+                btnElem.className = 'w-full text-left p-3.5 rounded-xl bg-rose-500/20 border-2 border-rose-400 text-xs sm:text-sm text-rose-200';
+                if (buttons[item.correct]) {
+                    buttons[item.correct].className = 'w-full text-left p-3.5 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 text-xs sm:text-sm text-emerald-200 font-bold';
+                }
+                feedback.className = 'p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200 leading-relaxed block';
+            }
+
+            feedback.textContent = item.explanation;
+            const scoreLabel = document.getElementById('quizScoreLabel');
+            if (scoreLabel) scoreLabel.textContent = `Skor: ${quizScore} / ${quizQuestions.length}`;
+        }
+
+        function nextQuizQuestion() {
+            if (currentQuizIdx < quizQuestions.length - 1) {
+                currentQuizIdx++;
+                renderQuizQuestion();
+            } else {
+                toggleQuizModal(false);
+            }
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        window.onload = function () {
+            selectPrecision('ternary');
+            updateArchDataset('lenet', 'mnist');
+            resetDefaultExample();
+            setGranularity(4);
+            selectPipelineStep(5);
+            filterSota('all');
+
+            const quizBtn = document.getElementById('quizBtn');
+            if (quizBtn) {
+                quizBtn.addEventListener('click', () => toggleQuizModal(true));
+            }
+        };
+    </script>
+</body>
+</html>
